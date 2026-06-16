@@ -693,172 +693,298 @@
     });
 
     // ══════════════════════════════════════════════
-    //  BUSCADOR MULTICAPA (igual que Poza Rica)
+    //  BUSCADOR MULTICAPA — implementación propia
+    //  No depende de versión de leaflet-search.js
     // ══════════════════════════════════════════════
 
-    // 1. Capa invisible para índice de búsqueda
-    var searchLayer = L.geoJson(null, {
-        style: function() {
-            return { stroke: false, fill: false, opacity: 0, fillOpacity: 0, interactive: false };
-        },
-        pointToLayer: function(feature, latlng) {
-            return L.circleMarker(latlng, { radius: 0, opacity: 0, fillOpacity: 0, interactive: false });
-        }
-    });
+    // 1. Índice global: array de objetos { label, prefijo, tipo, latlng, layer }
+    var searchIndex = [];
 
-    // 2. Helper: añadir features a la capa de búsqueda
-    function addDataToSearch(capaReal, campoClave, prefijoVisible) {
-        if (!capaReal) return;
-        capaReal.eachLayer(function(l) {
-            if (l.feature && l.feature.properties) {
-                var textoBusqueda = (typeof campoClave === 'function')
-                    ? campoClave(l.feature.properties)
-                    : String(l.feature.properties[campoClave] || '').trim();
+    function buildSearchIndex() {
+        searchIndex = [];
 
-                if (textoBusqueda !== '') {
-                    var geojsonFeature = {
-                        type: 'Feature',
-                        properties: Object.assign({}, l.feature.properties),
-                        geometry: l.feature.geometry
-                    };
-                    geojsonFeature.properties['search_field'] = prefijoVisible + ' - ' + textoBusqueda;
-                    geojsonFeature.properties['_sourceLayer'] = l;
-                    searchLayer.addData(geojsonFeature);
-                }
-            }
+        // --- MANZANAS ---
+        layer_TrazaUrbanaManzanas_6.eachLayer(function(l) {
+            var p = l.feature.properties;
+            var corta = String(p['CVE_MZA'] || '').trim();
+            var larga = String(p['CVEGEO']  || '').trim();
+            if (!corta && !larga) return;
+            var centro = l.getBounds ? l.getBounds().getCenter() : null;
+            searchIndex.push({
+                label:   'Manzana - ' + corta + ' | ' + larga,
+                prefijo: 'Manzana',
+                tipo:    '',
+                latlng:  centro,
+                layer:   l
+            });
+        });
+
+        // --- AGEBS (Tipo A / Tipo B) ---
+        layer_ZonificacinAGEBs_3.eachLayer(function(l) {
+            var p      = l.feature.properties;
+            var cvegeo = String(p['CVEGEO'] || '').trim();
+            var tipo   = getTipoAGEB(cvegeo);   // 'A' o 'B'
+            var centro = l.getBounds ? l.getBounds().getCenter() : null;
+            searchIndex.push({
+                label:   'AGEB - ' + cvegeo + ' | Tipo: ' + tipo,
+                prefijo: 'AGEB',
+                tipo:    tipo,          // 'A' o 'B'  ← clave para el filtro
+                latlng:  centro,
+                layer:   l
+            });
+        });
+
+        // --- RED VIAL ---
+        layer_RedVial_5.eachLayer(function(l) {
+            var p      = l.feature.properties;
+            var tvial  = String(p['TIPOVIAL'] || '').trim();
+            var nombre = String(p['NOMVIAL']  || '').trim();
+            var clave  = String(p['CVEVIAL']  || '').trim();
+            if (nombre.toLowerCase() === 'ninguno') nombre = 'SIN NOMBRE';
+            var texto  = (tvial + ' ' + nombre).trim();
+            var centro = l.getBounds ? l.getBounds().getCenter()
+                       : (l.getLatLng ? l.getLatLng() : null);
+            searchIndex.push({
+                label:   'Calle - ' + texto + ' | Clave: ' + clave,
+                prefijo: 'Calle',
+                tipo:    '',
+                latlng:  centro,
+                layer:   l
+            });
+        });
+
+        // --- ALUMBRADO ---
+        layer_Alumbradopostes_8.eachLayer(function(l) {
+            var p  = l.feature.properties;
+            var id = String(p['Id'] || '').trim();
+            if (!id) return;
+            searchIndex.push({
+                label:   'Poste - ' + id,
+                prefijo: 'Poste',
+                tipo:    '',
+                latlng:  l.getLatLng ? l.getLatLng() : null,
+                layer:   l
+            });
+        });
+
+        // --- BACHES ---
+        layer_Baches_7.eachLayer(function(l) {
+            var p  = l.feature.properties;
+            var id = String(p['ID_Reporte'] || '').trim();
+            if (!id) return;
+            searchIndex.push({
+                label:   'Bache - ' + id,
+                prefijo: 'Bache',
+                tipo:    '',
+                latlng:  l.getLatLng ? l.getLatLng() : null,
+                layer:   l
+            });
         });
     }
 
-    // 3. Alimentar el índice con cada capa
-
-    // --- MANZANAS ---
-    addDataToSearch(layer_TrazaUrbanaManzanas_6, function(props) {
-        var corta = String(props['CVE_MZA'] || '').trim();
-        var larga = String(props['CVEGEO'] || '').trim();
-        return corta + ' | ' + larga;
-    }, 'Manzana');
-
-    // --- AGEBS (con tipo A/B) ---   ← CAMBIO 1
-    addDataToSearch(layer_ZonificacinAGEBs_3, function(props) {
-        var cvegeo = String(props['CVEGEO'] || '').trim();
-        var tipo = getTipoAGEB(cvegeo);
-        return cvegeo + ' | Tipo: ' + tipo;
-    }, 'AGEB');
-
-    // --- RED VIAL ---
-    addDataToSearch(layer_RedVial_5, function(props) {
-        var tipo   = String(props['TIPOVIAL'] || '').trim();
-        var nombre = String(props['NOMVIAL']  || '').trim();
-        var clave  = String(props['CVEVIAL']  || '').trim();
-        if (nombre.toLowerCase() === 'ninguno') nombre = 'SIN NOMBRE';
-        return (tipo + ' ' + nombre).trim() + ' | Clave: ' + clave;
-    }, 'Calle');
-
-    // --- ALUMBRADO ---
-    addDataToSearch(layer_Alumbradopostes_8, 'Id', 'Poste');
-
-    // --- BACHES ---
-    addDataToSearch(layer_Baches_7, 'ID_Reporte', 'Bache');
-
-    // 4. Instanciar el control de búsqueda
-    var searchControl = new L.Control.Search({
-        layer: searchLayer,
-        initial: false,
-        propertyName: 'search_field',
-        zoom: 19,
-        marker: false,
-        textErr: 'No encontrado',
-        textCancel: 'Cancelar',
-        textPlaceholder: 'Buscar (Ej: Calle Enríquez, AGEB 1529)...',
-        casesensitive: false,
-        autoCollapse: false,
-
-        // ── CAMBIO 3: filterData con soporte AGEB_A ──
-        filterData: function(text, records) {
-            var filtroActivo = document.getElementById('filtro-busqueda') ? document.getElementById('filtro-busqueda').value : '';
-            var res = {};
-            var reg = new RegExp(text, 'i');
-            for (var key in records) {
-                if (filtroActivo === 'AGEB_A') {
-                    if (!key.startsWith('AGEB') || !/Tipo: A/.test(key)) continue;
-                } else if (filtroActivo === 'AGEB_B') {
-                    if (!key.startsWith('AGEB') || !/Tipo: B/.test(key)) continue;
-                } else if (filtroActivo === 'AGEB') {
-                    if (!key.startsWith('AGEB')) continue;
-                } else if (filtroActivo !== '') {
-                    if (!key.startsWith(filtroActivo)) continue;
-                }
-                if (reg.test(key)) res[key] = records[key];
+    // 2. Filtrado del índice según texto + selector
+    function filtrarIndice(texto, filtro) {
+        var reg = new RegExp(texto.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+        return searchIndex.filter(function(item) {
+            // Aplicar filtro de categoría
+            if (filtro === 'AGEB_A') {
+                if (item.prefijo !== 'AGEB' || item.tipo !== 'A') return false;
+            } else if (filtro === 'AGEB_B') {
+                if (item.prefijo !== 'AGEB' || item.tipo !== 'B') return false;
+            } else if (filtro === 'AGEB') {
+                if (item.prefijo !== 'AGEB') return false;
+            } else if (filtro !== '') {
+                if (item.prefijo !== filtro) return false;
             }
-            return res;
-        }
-    });
+            // Aplicar texto
+            return reg.test(item.label);
+        });
+    }
 
-    // 5. Acción al encontrar un resultado
-    searchControl.on('search:locationfound', function(e) {
-        var capaOriginal = e.layer.feature.properties._sourceLayer;
-        if (capaOriginal && capaOriginal.openPopup) {
-            capaOriginal.openPopup();
-            if (capaOriginal.setStyle && typeof capaOriginal.setStyle === 'function') {
-                var estiloOriginal = Object.assign({}, capaOriginal.options);
-                capaOriginal.setStyle({ fillColor: '#FFD700', color: '#ff0000', weight: 4, opacity: 1, fillOpacity: 0.7 });
-                setTimeout(function() {
-                    if (map.hasLayer(capaOriginal)) capaOriginal.setStyle(estiloOriginal);
-                }, 2500);
+    // 3. Navegar a un resultado
+    function irAResultado(item) {
+        if (!item.latlng) return;
+        map.flyTo(item.latlng, 19);
+        setTimeout(function() {
+            if (item.layer && item.layer.openPopup) {
+                item.layer.openPopup();
             }
-        }
-    });
+            // Flash visual
+            if (item.layer && item.layer.setStyle) {
+                var orig = Object.assign({}, item.layer.options);
+                item.layer.setStyle({ fillColor: '#FFD700', color: '#ff0000', weight: 4, opacity: 1, fillOpacity: 0.7 });
+                setTimeout(function() { item.layer.setStyle(orig); }, 2500);
+            }
+        }, 700);
+    }
 
-    map.addControl(searchControl);
+    // 4. Construir el control visual del buscador
+    L.Control.BuscadorXalapa = L.Control.extend({
+        onAdd: function(map) {
+            var wrapper = L.DomUtil.create('div', '');
+            wrapper.style.cssText = 'display:flex;align-items:center;gap:0;';
+            L.DomEvent.disableClickPropagation(wrapper);
+            L.DomEvent.disableScrollPropagation(wrapper);
 
-    // 6. Añadir ícono al botón de búsqueda
-    var searchBtn = document.querySelector('.search-button');
-    if (searchBtn) searchBtn.classList.add('fa', 'fa-binoculars');
+            // ── Caja principal (lupa + input) ──
+            var searchBox = L.DomUtil.create('div', 'leaflet-bar', wrapper);
+            searchBox.style.cssText = 'display:flex;align-items:center;background:white;border-radius:8px;overflow:hidden;height:36px;padding:0 10px;gap:6px;min-width:260px;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
 
-    // 7. Menú desplegable de filtro y disparo automático   ← CAMBIO 2
-    setTimeout(function() {
-        var searchInput = searchControl._input;
-        var searchContainer = searchControl.getContainer();
+            // Dropdown de filtro (chevron izquierdo)
+            var btnFiltro = document.createElement('button');
+            btnFiltro.id = 'btn-filtro-buscador';
+            btnFiltro.style.cssText = 'background:none;border:none;cursor:pointer;color:#7E1928;font-size:13px;font-family:Montserrat,sans-serif;font-weight:700;display:flex;align-items:center;gap:4px;white-space:nowrap;padding:0;';
+            btnFiltro.innerHTML = '<i class="fas fa-binoculars" style="color:#7E1928;font-size:14px;"></i> <span id="label-filtro">Buscar en todo</span> <i class="fas fa-chevron-down" style="font-size:10px;color:#aaa;"></i>';
+            searchBox.appendChild(btnFiltro);
 
-        if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                setTimeout(function() {
-                    var ev = new KeyboardEvent('keyup', { bubbles: true, cancelable: true, keyCode: 13 });
-                    searchInput.dispatchEvent(ev);
-                }, 150);
-            });
-        }
+            // Separador
+            var sep = document.createElement('div');
+            sep.style.cssText = 'width:1px;height:18px;background:#ddd;flex-shrink:0;';
+            searchBox.appendChild(sep);
 
-        if (searchContainer) {
-            L.DomEvent.disableClickPropagation(searchContainer);
-            searchContainer.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+            // Input de texto
+            var inp = document.createElement('input');
+            inp.type = 'text';
+            inp.id   = 'buscador-xalapa-input';
+            inp.placeholder = 'Ej: Calle Enríquez, AGEB 1529...';
+            inp.style.cssText = 'border:none;outline:none;font-family:Montserrat,sans-serif;font-size:12px;color:#333;flex:1;background:transparent;';
+            searchBox.appendChild(inp);
 
-            if (!document.getElementById('filtro-busqueda')) {
-                var selectHTML = document.createElement('select');
-                selectHTML.id = 'filtro-busqueda';
-                selectHTML.innerHTML =
-                    '<option value="">🔎 Buscar en todo</option>' +
-                    '<option value="Manzana">📍 Solo Manzanas</option>' +
-                    '<option value="Calle">🛣️ Solo Calles</option>' +
-                    '<option value="AGEB_A">🔴 AGEBs Tipo A (prioritarias)</option>' +
-                    '<option value="AGEB_B">🟣 AGEBs Tipo B (resto)</option>' +
-                    '<option value="AGEB">🔍 Todas las AGEBs</option>' +
-                    '<option value="Poste">💡 Solo Postes</option>' +
-                    '<option value="Bache">🚧 Solo Baches</option>';
+            // Botón limpiar
+            var btnX = document.createElement('button');
+            btnX.style.cssText = 'background:none;border:none;cursor:pointer;color:#aaa;font-size:16px;line-height:1;padding:0;display:none;';
+            btnX.innerHTML = '&times;';
+            searchBox.appendChild(btnX);
 
-                selectHTML.style.cssText = 'border:2px solid #C3935D;padding:2px;border-radius:4px;margin-left:6px;background:white;color:#7E1928;font-weight:bold;cursor:pointer;outline:none;font-family:Montserrat,sans-serif;font-size:11px;height:28px;vertical-align:top;display:inline-block;';
+            // ── Dropdown de opciones de filtro ──
+            var dropdown = document.createElement('div');
+            dropdown.id = 'buscador-dropdown-filtro';
+            dropdown.style.cssText = 'display:none;position:absolute;top:44px;left:0;background:white;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.18);z-index:99999;min-width:220px;overflow:hidden;';
 
-                searchContainer.appendChild(selectHTML);
+            var opciones = [
+                { val: '',       icon: '🔎', txt: 'Buscar en todo'           },
+                { val: 'Manzana',icon: '📍', txt: 'Solo Manzanas'             },
+                { val: 'Calle',  icon: '🛣️', txt: 'Solo Calles'               },
+                { val: 'AGEB_A', icon: '🔴', txt: 'AGEBs Tipo A (prioritarias)'},
+                { val: 'AGEB_B', icon: '🟣', txt: 'AGEBs Tipo B (resto)'       },
+                { val: 'AGEB',   icon: '🔍', txt: 'Todas las AGEBs'            },
+                { val: 'Poste',  icon: '💡', txt: 'Solo Postes'               },
+                { val: 'Bache',  icon: '🚧', txt: 'Solo Baches'               }
+            ];
 
-                selectHTML.addEventListener('change', function() {
-                    if (searchInput && searchInput.value !== '') {
-                        var ev = new KeyboardEvent('keyup', { bubbles: true, keyCode: 13 });
-                        searchInput.dispatchEvent(ev);
-                    }
+            var filtroActivo = '';
+
+            opciones.forEach(function(op) {
+                var li = document.createElement('div');
+                li.style.cssText = 'padding:10px 16px;cursor:pointer;font-family:Montserrat,sans-serif;font-size:12px;color:#333;display:flex;align-items:center;gap:8px;transition:background 0.15s;';
+                li.innerHTML = '<span>' + op.icon + '</span><span>' + op.txt + '</span>';
+                li.addEventListener('mouseenter', function() { li.style.background = '#f4f4f4'; });
+                li.addEventListener('mouseleave', function() { li.style.background = 'white'; });
+                li.addEventListener('click', function() {
+                    filtroActivo = op.val;
+                    document.getElementById('label-filtro').textContent = op.txt;
+                    dropdown.style.display = 'none';
+                    inp.focus();
+                    dispararBusqueda();
                 });
+                dropdown.appendChild(li);
+            });
+            wrapper.appendChild(dropdown);
+
+            // ── Lista de resultados ──
+            var listaResultados = document.createElement('div');
+            listaResultados.id = 'buscador-lista-resultados';
+            listaResultados.style.cssText = 'display:none;position:absolute;top:44px;left:0;right:0;background:white;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.18);z-index:99998;max-height:280px;overflow-y:auto;';
+            wrapper.appendChild(listaResultados);
+
+            // ── Posicionamiento relativo del wrapper ──
+            wrapper.style.position = 'relative';
+
+            // ── Lógica de búsqueda ──
+            function dispararBusqueda() {
+                var texto = inp.value.trim();
+                btnX.style.display = texto ? 'block' : 'none';
+                listaResultados.style.display = 'none';
+                listaResultados.innerHTML = '';
+
+                if (texto.length < 2) return;
+
+                var resultados = filtrarIndice(texto, filtroActivo);
+                if (!resultados.length) {
+                    listaResultados.innerHTML = '<div style="padding:14px 16px;font-family:Montserrat,sans-serif;font-size:12px;color:#aaa;">Sin resultados</div>';
+                    listaResultados.style.display = 'block';
+                    return;
+                }
+
+                // Mostrar máximo 12 resultados
+                resultados.slice(0, 12).forEach(function(item) {
+                    var row = document.createElement('div');
+                    row.style.cssText = 'padding:10px 16px;cursor:pointer;font-family:Montserrat,sans-serif;font-size:12px;color:#333;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:8px;transition:background 0.15s;';
+
+                    // Ícono por prefijo
+                    var iconos = { Manzana:'📍', Calle:'🛣️', AGEB:'🟣', Poste:'💡', Bache:'🚧' };
+                    // Para AGEB Tipo A mostrar rojo
+                    var iconoFinal = (item.prefijo === 'AGEB' && item.tipo === 'A') ? '🔴'
+                                   : (iconos[item.prefijo] || '📌');
+
+                    row.innerHTML = '<span style="font-size:15px;">' + iconoFinal + '</span>' +
+                                    '<span>' + item.label + '</span>';
+
+                    row.addEventListener('mouseenter', function() { row.style.background = '#f8f4ff'; });
+                    row.addEventListener('mouseleave', function() { row.style.background = 'white'; });
+                    row.addEventListener('click', function() {
+                        inp.value = item.label;
+                        btnX.style.display = 'block';
+                        listaResultados.style.display = 'none';
+                        irAResultado(item);
+                    });
+                    listaResultados.appendChild(row);
+                });
+
+                listaResultados.style.display = 'block';
             }
+
+            // ── Eventos ──
+            inp.addEventListener('input', dispararBusqueda);
+            inp.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    listaResultados.style.display = 'none';
+                    dropdown.style.display = 'none';
+                }
+                if (e.key === 'Enter') {
+                    var first = listaResultados.querySelector('div[style*="cursor:pointer"]');
+                    if (first) first.click();
+                }
+            });
+
+            btnX.addEventListener('click', function() {
+                inp.value = '';
+                btnX.style.display = 'none';
+                listaResultados.style.display = 'none';
+                inp.focus();
+            });
+
+            btnFiltro.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var vis = dropdown.style.display === 'block';
+                dropdown.style.display = vis ? 'none' : 'block';
+                listaResultados.style.display = 'none';
+            });
+
+            // Cerrar al hacer click fuera
+            document.addEventListener('click', function() {
+                dropdown.style.display = 'none';
+                listaResultados.style.display = 'none';
+            });
+            wrapper.addEventListener('click', function(e) { e.stopPropagation(); });
+
+            return wrapper;
         }
-    }, 500);
+    });
+
+    // 5. Construir índice y añadir control al mapa
+    buildSearchIndex();
+    new L.Control.BuscadorXalapa({ position: 'topleft' }).addTo(map);
 
     setBounds();
 
