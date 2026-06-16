@@ -1,113 +1,104 @@
 <!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
-        <meta name="mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <link rel="stylesheet" href="css/leaflet.css">
-        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
-        <link rel="stylesheet" href="css/qgis2web.css">
-        <link rel="stylesheet" href="css/fontawesome-all.min.css">
-        <link rel="stylesheet" href="css/leaflet.photon.css">
-        <style>
-        .borrar-estilo {
-            background: transparent !important;
-            border: none !important;
-        }
-        .borrar-estilo i {
-            width: 100%;
-            height: 100%;
-            display: block;
-            line-height: 24px; /* Centra el icono verticalmente */
-        }
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="css/leaflet.css">
+    <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+    <link rel="stylesheet" href="css/qgis2web.css">
+    <link rel="stylesheet" href="css/fontawesome-all.min.css">
+    <link rel="stylesheet" href="css/leaflet.photon.css">
+    <link rel="stylesheet" href="css/leaflet-search.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Catastro Municipal — Xalapa</title>
 
+    <style>
         * { box-sizing: border-box; }
-        
-        html, body { 
-            margin: 0; padding: 0; 
-            width: 100%; height: 100%; 
-            overflow: hidden; 
-            display: flex; flex-direction: column;  
+
+        html, body {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            display: flex; flex-direction: column;
+            font-family: 'Montserrat', sans-serif;
         }
 
+        /* ── BARRA SUPERIOR ── */
         #top-bar {
-            flex: 0 0 70px; 
-            background: #7E1928; 
-            border-bottom: 4px solid #C3935D; 
+            flex: 0 0 70px;
+            background: #7E1928;
+            border-bottom: 4px solid #C3935D;
             color: white;
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 15px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             z-index: 3000; position: relative;
         }
-
-        #map {
-            flex: 1; width: 100%; height: auto !important; 
-            margin: 0; background-color: #f0f0f0; z-index: 1;
-        }
-
-        /* --- LOGOS Y TITULOS --- */
         .logo-area { display: flex; align-items: center; height: 100%; }
-        
-        
         .logo-box {
             background-color: white; padding: 5px 12px;
             border-radius: 6px; margin-right: 15px;
             height: 60px; display: flex; align-items: center; justify-content: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        
-        #drobot-logo { 
-            height: 90%; width: auto; 
-            display: block; filter: none;
-        }
-
-        .drobot-title { 
-            font-weight: 700; font-size: 18px; letter-spacing: 0.5px;
+        #drobot-logo { height: 90%; width: auto; display: block; }
+        .drobot-title {
+            font-weight: 700; font-size: 16px; letter-spacing: 0.5px;
             line-height: 1.2; text-transform: uppercase;
         }
-
-        .client-area { 
-            font-size: 13px; color: rgba(255,255,255,0.9); 
-            border-left: 1px solid #C3935D; padding-left: 20px; 
+        .client-area {
+            font-size: 13px; color: rgba(255,255,255,0.9);
+            border-left: 1px solid #C3935D; padding-left: 20px;
             font-weight: 600; height: 40px; display: flex; align-items: center;
         }
-        /* --- 3. CONTROLES Y MENÚ DE CAPAS --- */
 
+        /* ── MAPA ── */
+        #map {
+            flex: 1; width: 100%; height: auto !important;
+            margin: 0; background-color: #f0f0f0; z-index: 1;
+        }
+
+        /* ── CONTROLES LEAFLET ── */
         .leaflet-bar {
             box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
             border: none !important; border-radius: 8px !important; overflow: hidden;
         }
-        .leaflet-bar a, .leaflet-control-layers-toggle {
+        .leaflet-bar a {
             background-color: white !important; color: #444 !important;
             width: 36px !important; height: 36px !important; line-height: 36px !important;
             font-weight: bold !important; border-bottom: 1px solid #f0f0f0 !important;
             transition: all 0.2s ease;
         }
         .leaflet-bar a:hover {
-            background-color: #f8f9fa !important; color: #A21131 !important; 
+            background-color: #f8f9fa !important; color: #A21131 !important;
             border-left: 3px solid #C3935D !important;
         }
 
+        /* ── PANEL DE CAPAS ── */
         .leaflet-control-layers {
             border: none !important; border-radius: 12px !important;
             box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
             padding: 15px !important;
-            background: rgba(255, 255, 255, 0.95) !important;
+            background: rgba(255,255,255,0.97) !important;
             backdrop-filter: blur(5px);
         }
         .leaflet-control-layers-group-label {
             color: #7E1928; font-weight: 700; font-size: 14px;
-            margin-top: 8px; display: block; border-bottom: 2px solid #C3935D; 
+            margin-top: 8px; display: block;
+            border-bottom: 2px solid #C3935D;
             padding-bottom: 4px; margin-bottom: 8px;
         }
         .leaflet-control-layers label {
             margin-bottom: 6px; font-size: 13px; cursor: pointer; transition: color 0.2s;
         }
         .leaflet-control-layers label:hover { color: #A21131; }
-        /* --- 4. POPUPS (TARJETAS) --- */
+
+        /* ── POP-UPS ── */
         .leaflet-popup-content-wrapper {
             border-radius: 16px !important;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2) !important;
@@ -115,169 +106,87 @@
         }
         .leaflet-popup-content {
             margin: 0 !important; line-height: 1.6; font-size: 13px;
-            min-width: 300px !important;
+            min-width: 280px !important;
         }
-        
-        .leaflet-tooltip.label-ageb {
-            background: transparent; border: none; box-shadow: none;
-        }
+        /* Oculta la primera fila vacía que genera qgis2web */
         .leaflet-popup-content table tr:first-child { display: none !important; }
 
-        /* --- 5. VISOR DE FOTOS  --- */
-        #image-modal.modal-overlay {
-            z-index: 100000;
+        /* ── VISOR DE FOTOS ── */
+        .modal-overlay {
+            display: none;
+            position: fixed; z-index: 99999;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.88);
+            backdrop-filter: blur(4px);
+            align-items: center; justify-content: center;
         }
+        #image-modal.modal-overlay { z-index: 100000; }
         .modal-content {
-            margin: auto; display: block; width: auto; height: auto;
+            margin: auto; display: block;
             max-width: 90vw; max-height: 85vh;
             border-radius: 8px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            animation: zoom 0.4s;
+            animation: zoom 0.3s ease;
         }
-        @keyframes zoom { from {transform:scale(0.8); opacity:0} to {transform:scale(1); opacity:1} }
+        @keyframes zoom { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
         .close-modal {
             position: absolute; top: 20px; right: 35px; color: #f1f1f1;
-            font-size: 40px; font-weight: bold; transition: 0.3s; cursor: pointer;
+            font-size: 40px; font-weight: bold; cursor: pointer; transition: 0.2s;
         }
+        .close-modal:hover { color: #C3935D; }
 
-        /* --- 6. DASHBOARD CORREGIDO (CENTRO Y ANIMACIÓN) --- */
-        .modal-overlay {
-            display: none; 
-            position: fixed; z-index: 99999;
-            left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.85);
-            backdrop-filter: blur(4px);
-            
-          
-            align-items: center;
-            justify-content: center;
-        }
-
-        
-        .chart-card-drobot {
-            background: white;
-            border-radius: 16px;
-            width: 90%; max-width: 700px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            overflow: hidden;
-            display: flex; flex-direction: column;
-            
-          
-            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-        }
-
-        @keyframes slideUp { 
-            0% { transform: translateY(100px) scale(0.9); opacity: 0; } 
-            100% { transform: translateY(0) scale(1); opacity: 1; } 
-        }
-
-        .chart-header-drobot {
-            background: #7E1928 !important; border-bottom: 3px solid #C3935D !important;
-            color: white; padding: 15px 25px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .chart-title { font-weight: 700; font-size: 18px; letter-spacing: 0.5px; }
-        .close-chart-btn { font-size: 28px; cursor: pointer; color: rgba(255,255,255,0.8); }
-        .chart-body-drobot { padding: 25px; height: 350px; position: relative; }
-        .chart-controls-drobot {
-            padding: 15px 25px; background: #f8f9fa; border-top: 1px solid #eee;
-            display: flex; justify-content: center; gap: 10px;
-        }
-        .chart-btn {
-            background: white; border: 1px solid #ddd; padding: 10px 20px;
-            border-radius: 30px; cursor: pointer; color: #555;
-            transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;
-        }
-        .chart-btn.active {
-            background: #7E1928; color: white; border-color: #7E1928;
-            box-shadow: 0 4px 10px rgba(126, 25, 40, 0.3);
-        }
-
-        .chart-tabs {
-            display: flex; background: #f1f2f6; padding: 5px; gap: 5px; border-bottom: 1px solid #ddd;
-        }
-        .tab-btn {
-            flex: 1; border: none; background: transparent; padding: 10px;
-            cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600;
-            color: #7f8c8d; border-radius: 8px; transition: all 0.3s;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-        }
-        .tab-btn:hover { background: rgba(0,0,0,0.05); color: #2c3e50; }
-        .tab-btn.active {
-            background: white; color: #922B21; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        /* --- 7. SLIDER GOOGLE EARTH (OCULTO) --- */
-        .btn-google-earth {
-            display: none !important;
-            background-color: #333 !important; 
-            border-radius: 50% !important;
-            width: 40px !important; height: 40px !important;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
-            cursor: pointer; align-items: center; justify-content: center;
-            border: 2px solid rgba(255,255,255,0.3) !important;
-            transition: transform 0.2s, background-color 0.2s; z-index: 9999 !important;
-        }
-        .leaflet-sbs-divider, .leaflet-sbs-range, .sbs-handle-visual, .year-chip {
-            display: none !important; 
-        }
-
-        /* --- 8. RESPONSIVIDAD (MÓVIL) --- */
+        /* ── PANEL MÓVIL ── */
         .panel-movil-oculto {
             display: none; position: fixed; bottom: -100%; left: 0; width: 100%;
             background: white; border-radius: 20px 20px 0 0;
             box-shadow: 0 -5px 20px rgba(0,0,0,0.3); z-index: 99999;
-            transition: bottom 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-            padding: 20px; max-height: 50vh; overflow-y: auto;
+            transition: bottom 0.3s cubic-bezier(0.4,0,0.2,1);
+            padding: 20px; max-height: 55vh; overflow-y: auto;
         }
         .panel-movil-activo { bottom: 0 !important; display: block; }
-        
         #btn-cerrar-panel {
             position: absolute; top: 10px; right: 15px;
             background: #7E1928; color: white; border: none; border-radius: 50%;
             width: 30px; height: 30px; font-size: 20px; cursor: pointer; z-index: 100000;
         }
 
+        /* ── RESPONSIVO MÓVIL ── */
         @media (max-width: 768px) {
-            #top-bar { flex: 0 0 60px; padding: 0 10px; } 
-            .logo-area img { height: 35px; }
-            .drobot-title { font-size: 14px; line-height: 1.1; }
-            .client-area { display: none; } 
+            #top-bar { flex: 0 0 60px; padding: 0 10px; }
+            .drobot-title { font-size: 13px; }
+            .client-area { display: none; }
             .leaflet-popup { display: none !important; }
-            
             .leaflet-top.leaflet-left {
                 top: auto !important; left: auto !important;
-                bottom: 30px !important; right: 15px !important;   
+                bottom: 30px !important; right: 15px !important;
                 display: flex; flex-direction: column-reverse; align-items: flex-end;
             }
-            .leaflet-control { margin-bottom: 15px !important; margin-right: 0 !important; border: none !important; box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important; }
-            .leaflet-control-zoom { border-radius: 20px !important; overflow: hidden; }
-            .leaflet-control-zoom a { width: 45px !important; height: 45px !important; line-height: 45px !important; font-size: 20px !important; color: #333 !important; }
+            .leaflet-control-zoom a {
+                width: 45px !important; height: 45px !important;
+                line-height: 45px !important; font-size: 20px !important;
+            }
             .leaflet-control-layers-toggle {
                 width: 50px !important; height: 50px !important; border-radius: 50% !important;
-                background-color: #7E1928 !important; background-size: 24px !important;
-                filter: invert(1) brightness(2); 
+                background-color: #7E1928 !important;
+                filter: invert(1) brightness(2);
             }
-            .leaflet-control-scale { display: none; }
         }
     </style>
-        <title></title>
-    
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-<link rel="stylesheet" href="css/leaflet-measure.css">
-<link rel="stylesheet" href="css/leaflet-search.css">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    </head>
-    <body>
+</head>
+
+<body>
+
+    <!-- ══ BARRA INSTITUCIONAL ══ -->
     <div id="top-bar">
         <div class="logo-area">
             <div class="logo-box">
-                <img src="logo_xalapa.png" alt="Escudo" id="drobot-logo">
+                <img src="logo_xalapa.png" alt="Escudo Xalapa" id="drobot-logo">
             </div>
-            <div style="display:flex; flex-direction:column; justify-content:center;">
-                <span class="drobot-title" style="font-size:16px;">H. AYUNTAMIENTO</span>
-                <span style="font-size:11px; font-weight:400; text-transform:uppercase; letter-spacing:1px;">Xalapa, Veracruz | 2026-2029</span>
+            <div style="display:flex;flex-direction:column;justify-content:center;">
+                <span class="drobot-title">H. AYUNTAMIENTO</span>
+                <span style="font-size:11px;font-weight:400;text-transform:uppercase;letter-spacing:1px;opacity:0.9;">
+                    Xalapa, Veracruz | 2026-2029
+                </span>
             </div>
         </div>
         <div class="client-area">
@@ -285,630 +194,719 @@
         </div>
     </div>
 
+    <!-- ══ MAPA ══ -->
     <div id="map"></div>
-        <script src="js/qgis2web_expressions.js"></script>
-        <script src="js/leaflet.js"></script>
-        <script src="js/L.Control.Layers.Tree.min.js"></script>
-        <script src="js/leaflet-svg-shape-markers.min.js"></script>
-        <script src="js/leaflet.rotatedMarker.js"></script>
-        <script src="js/leaflet.pattern.js"></script>
-        <script src="js/leaflet-hash.js"></script>
-        <script src="js/Autolinker.min.js"></script>
-        <script src="js/rbush.min.js"></script>
-        <script src="js/labelgun.min.js"></script>
-        <script src="js/labels.js"></script>
-        <script src="js/leaflet.photon.js"></script>
-        <script src="data/ZonificacinAGEBs_3.js"></script>
-        <script src="data/LmiteMunicipal_4.js"></script>
-        <script src="data/RedVial_5.js"></script>
-        <script src="data/TrazaUrbanaManzanas_6.js"></script>
-        <script src="data/Baches_7.js"></script>
-        <script src="data/Alumbradopostes_8.js"></script>
-        <script>
-        var map = L.map('map', {
-            zoomControl:false, maxZoom:28, minZoom:1
-        }).fitBounds([[19.534309222071567,-96.95168571057498],[19.563968174869007,-96.87133505187118]]);
-        var hash = new L.Hash(map);
-        map.attributionControl.setPrefix('<a href="https://github.com/qgis2web/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
-        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
-        // remove popup's row if "visible-with-data"
-        function removeEmptyRowsFromPopupContent(content, feature) {
-         var tempDiv = document.createElement('div');
-         tempDiv.innerHTML = content;
-         var rows = tempDiv.querySelectorAll('tr');
-         for (var i = 0; i < rows.length; i++) {
-             var td = rows[i].querySelector('td.visible-with-data');
-             var key = td ? td.id : '';
-             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
-                 rows[i].parentNode.removeChild(rows[i]);
-             }
-         }
-         return tempDiv.innerHTML;
-        }
-        // modify popup if contains media
-        function addClassToPopupIfMedia(content, popup) {
-            var tempDiv = document.createElement('div');
-            tempDiv.innerHTML = content;
-            var imgTd = tempDiv.querySelector('td img');
-            if (imgTd) {
-                var src = imgTd.getAttribute('src');
-                if (/\.(jpg|jpeg|png|gif|bmp|webp|avif)$/i.test(src)) {
-                    popup._contentNode.classList.add('media');
-                    setTimeout(function() {
-                        popup.update();
-                    }, 10);
-                } else if (/\.(mp3|wav|ogg|aac)$/i.test(src)) {
-                    var audio = document.createElement('audio');
-                    audio.controls = true;
-                    audio.src = src;
-                    imgTd.parentNode.replaceChild(audio, imgTd);
-                    popup._contentNode.classList.add('media');
-                    setTimeout(function() {
-                        popup.setContent(tempDiv.innerHTML);
-                        popup.update();
-                    }, 10);
-                } else if (/\.(mp4|webm|ogg|mov)$/i.test(src)) {
-                    var video = document.createElement('video');
-                    video.controls = true;
-                    video.src = src;
-                    video.style.width = "400px";
-                    video.style.height = "300px";
-                    video.style.maxHeight = "60vh";
-                    video.style.maxWidth = "60vw";
-                    imgTd.parentNode.replaceChild(video, imgTd);
-                    popup._contentNode.classList.add('media');
-                    // Aggiorna il popup quando il video carica i metadati
-                    video.addEventListener('loadedmetadata', function() {
-                        popup.update();
-                    });
-                    setTimeout(function() {
-                        popup.setContent(tempDiv.innerHTML);
-                        popup.update();
-                    }, 10);
-                } else {
-                    popup._contentNode.classList.remove('media');
-                }
-            } else {
-                popup._contentNode.classList.remove('media');
+
+    <!-- ══ SCRIPTS DE LEAFLET Y DATOS ══ -->
+    <script src="js/qgis2web_expressions.js"></script>
+    <script src="js/leaflet.js"></script>
+    <script src="js/L.Control.Layers.Tree.min.js"></script>
+    <script src="js/leaflet-svg-shape-markers.min.js"></script>
+    <script src="js/leaflet.rotatedMarker.js"></script>
+    <script src="js/leaflet.pattern.js"></script>
+    <script src="js/leaflet-hash.js"></script>
+    <script src="js/Autolinker.min.js"></script>
+    <script src="js/rbush.min.js"></script>
+    <script src="js/labelgun.min.js"></script>
+    <script src="js/labels.js"></script>
+    <script src="js/leaflet.photon.js"></script>
+    <script src="js/leaflet-search.js"></script>
+
+    <!-- Capas de datos de Xalapa -->
+    <script src="data/ZonificacinAGEBs_3.js"></script>
+    <script src="data/LmiteMunicipal_4.js"></script>
+    <script src="data/RedVial_5.js"></script>
+    <script src="data/TrazaUrbanaManzanas_6.js"></script>
+    <script src="data/Baches_7.js"></script>
+    <script src="data/Alumbradopostes_8.js"></script>
+
+    <script>
+    // ══════════════════════════════════════════════
+    //  INICIALIZACIÓN DEL MAPA
+    // ══════════════════════════════════════════════
+    var map = L.map('map', {
+        zoomControl: false, maxZoom: 28, minZoom: 1
+    }).fitBounds([[19.534309222071567,-96.95168571057498],[19.563968174869007,-96.87133505187118]]);
+
+    var hash = new L.Hash(map);
+    map.attributionControl.setPrefix(
+        '<a href="https://github.com/qgis2web/qgis2web" target="_blank">qgis2web</a> &middot; ' +
+        '<a href="https://leafletjs.com">Leaflet</a> &middot; ' +
+        '<a href="https://qgis.org">QGIS</a>'
+    );
+
+    var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+    var bounds_group = new L.featureGroup([]);
+
+    // ── Helpers de popup ──
+    function removeEmptyRowsFromPopupContent(content, feature) {
+        var tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        var rows = tempDiv.querySelectorAll('tr');
+        for (var i = 0; i < rows.length; i++) {
+            var td = rows[i].querySelector('td.visible-with-data');
+            var key = td ? td.id : '';
+            if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                rows[i].parentNode.removeChild(rows[i]);
             }
         }
-        var zoomControl = L.control.zoom({
-            position: 'topleft'
-        }).addTo(map);
-        var bounds_group = new L.featureGroup([]);
-        function setBounds() {
-        }
-        map.createPane('pane_2gisMap_0');
-        map.getPane('pane_2gisMap_0').style.zIndex = 400;
-        var layer_2gisMap_0 = L.tileLayer('https://tile2.maps.2gis.com/tiles?x={x}&y={y}&z={z}&v=1.1', {
-            pane: 'pane_2gisMap_0',
-            opacity: 1.0,
-            attribution: '',
-            minZoom: 1,
-            maxZoom: 28,
-            minNativeZoom: 0,
-            maxNativeZoom: 18
-        });
-        layer_2gisMap_0;
-        map.addLayer(layer_2gisMap_0);
-        map.createPane('pane_GoogleHybrid_1');
-        map.getPane('pane_GoogleHybrid_1').style.zIndex = 401;
-        var layer_GoogleHybrid_1 = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-            pane: 'pane_GoogleHybrid_1',
-            opacity: 1.0,
-            attribution: '<a href="https://www.google.at/permissions/geoguidelines/attr-guide.html">Map data ©2015 Google</a>',
-            minZoom: 1,
-            maxZoom: 28,
-            minNativeZoom: 0,
-            maxNativeZoom: 20
-        });
-        layer_GoogleHybrid_1;
-        map.createPane('pane_GoogleSatellite_2');
-        map.getPane('pane_GoogleSatellite_2').style.zIndex = 402;
-        var layer_GoogleSatellite_2 = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-            pane: 'pane_GoogleSatellite_2',
-            opacity: 1.0,
-            attribution: '<a href="https://www.google.at/permissions/geoguidelines/attr-guide.html">Map data ©2015 Google</a>',
-            minZoom: 1,
-            maxZoom: 28,
-            minNativeZoom: 0,
-            maxNativeZoom: 20
-        });
-        layer_GoogleSatellite_2;
-        map.addLayer(layer_GoogleSatellite_2);
-        function pop_ZonificacinAGEBs_3(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['IDENTIFICA'] !== null ? autolinker.link(String(feature.properties['IDENTIFICA']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['CVEGEO'] !== null ? autolinker.link(String(feature.properties['CVEGEO']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
+        return tempDiv.innerHTML;
+    }
 
-        function style_ZonificacinAGEBs_3_0() {
-            return {
-                pane: 'pane_ZonificacinAGEBs_3',
-                opacity: 1,
-                color: 'rgba(211,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 6.0, 
-                fillOpacity: 0,
-                interactive: true,
+    function addClassToPopupIfMedia(content, popup) {
+        var tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        var imgTd = tempDiv.querySelector('td img');
+        if (imgTd) {
+            var src = imgTd.getAttribute('src');
+            if (/\.(jpg|jpeg|png|gif|bmp|webp|avif)$/i.test(src)) {
+                popup._contentNode.classList.add('media');
+                setTimeout(function() { popup.update(); }, 10);
             }
         }
-        map.createPane('pane_ZonificacinAGEBs_3');
-        map.getPane('pane_ZonificacinAGEBs_3').style.zIndex = 403;
-        map.getPane('pane_ZonificacinAGEBs_3').style['mix-blend-mode'] = 'normal';
-        var layer_ZonificacinAGEBs_3 = new L.geoJson(json_ZonificacinAGEBs_3, {
-            attribution: '',
-            interactive: true,
-            dataVar: 'json_ZonificacinAGEBs_3',
-            layerName: 'layer_ZonificacinAGEBs_3',
-            pane: 'pane_ZonificacinAGEBs_3',
-            onEachFeature: pop_ZonificacinAGEBs_3,
-            style: style_ZonificacinAGEBs_3_0,
-        });
-        bounds_group.addLayer(layer_ZonificacinAGEBs_3);
-        map.addLayer(layer_ZonificacinAGEBs_3);
-        function pop_LmiteMunicipal_4(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['IDENTIFICA'] !== null ? autolinker.link(String(feature.properties['IDENTIFICA']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['AMBITO'] !== null ? autolinker.link(String(feature.properties['AMBITO']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['CVEGEO'] !== null ? autolinker.link(String(feature.properties['CVEGEO']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['NOMBRE'] !== null ? autolinker.link(String(feature.properties['NOMBRE']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['area_m2'] !== null ? autolinker.link(String(feature.properties['area_m2']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['aarea_h'] !== null ? autolinker.link(String(feature.properties['aarea_h']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
+    }
 
-        function style_LmiteMunicipal_4_0() {
-            return {
-                pane: 'pane_LmiteMunicipal_4',
-                opacity: 1,
-                color: 'rgba(230,219,41,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 4.0, 
-                fillOpacity: 0,
-                interactive: true,
-            }
-        }
-        map.createPane('pane_LmiteMunicipal_4');
-        map.getPane('pane_LmiteMunicipal_4').style.zIndex = 404;
-        map.getPane('pane_LmiteMunicipal_4').style['mix-blend-mode'] = 'normal';
-        var layer_LmiteMunicipal_4 = new L.geoJson(json_LmiteMunicipal_4, {
-            attribution: '',
-            interactive: true,
-            dataVar: 'json_LmiteMunicipal_4',
-            layerName: 'layer_LmiteMunicipal_4',
-            pane: 'pane_LmiteMunicipal_4',
-            onEachFeature: pop_LmiteMunicipal_4,
-            style: style_LmiteMunicipal_4_0,
-        });
-        bounds_group.addLayer(layer_LmiteMunicipal_4);
-        map.addLayer(layer_LmiteMunicipal_4);
-        function pop_RedVial_5(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['IDENTIFICA'] !== null ? autolinker.link(String(feature.properties['IDENTIFICA']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['CVEVIAL'] !== null ? autolinker.link(String(feature.properties['CVEVIAL']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['TIPOVIAL'] !== null ? autolinker.link(String(feature.properties['TIPOVIAL']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['NOMVIAL'] !== null ? autolinker.link(String(feature.properties['NOMVIAL']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['SENTIDO'] !== null ? autolinker.link(String(feature.properties['SENTIDO']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
+    // ── Zoom control ──
+    L.control.zoom({ position: 'topleft' }).addTo(map);
 
-        function style_RedVial_5_0() {
-            return {
-                pane: 'pane_RedVial_5',
-                opacity: 1,
-                color: 'rgba(203,203,203,1.0)',
-                dashArray: '',
-                lineCap: 'round',
-                lineJoin: 'round',
-                weight: 3.0,
-                fillOpacity: 0,
-                interactive: true,
-            }
-        }
-        map.createPane('pane_RedVial_5');
-        map.getPane('pane_RedVial_5').style.zIndex = 405;
-        map.getPane('pane_RedVial_5').style['mix-blend-mode'] = 'normal';
-        var layer_RedVial_5 = new L.geoJson(json_RedVial_5, {
-            attribution: '',
-            interactive: true,
-            dataVar: 'json_RedVial_5',
-            layerName: 'layer_RedVial_5',
-            pane: 'pane_RedVial_5',
-            onEachFeature: pop_RedVial_5,
-            style: style_RedVial_5_0,
-        });
-        bounds_group.addLayer(layer_RedVial_5);
-        map.addLayer(layer_RedVial_5);
-        function pop_TrazaUrbanaManzanas_6(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['IDENTIFICA'] !== null ? autolinker.link(String(feature.properties['IDENTIFICA']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['CVEGEO'] !== null ? autolinker.link(String(feature.properties['CVEGEO']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['CVEFT'] !== null ? autolinker.link(String(feature.properties['CVEFT']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['CVEVIAL'] !== null ? autolinker.link(String(feature.properties['CVEVIAL']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['TIPOVIAL'] !== null ? autolinker.link(String(feature.properties['TIPOVIAL']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['NOMVIAL'] !== null ? autolinker.link(String(feature.properties['NOMVIAL']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['CVEVIAL1'] !== null ? autolinker.link(String(feature.properties['CVEVIAL1']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['CVEREF1'] !== null ? autolinker.link(String(feature.properties['CVEREF1']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['TIPOVR1'] !== null ? autolinker.link(String(feature.properties['TIPOVR1']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['NOMREF1'] !== null ? autolinker.link(String(feature.properties['NOMREF1']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['CVEVIAL2'] !== null ? autolinker.link(String(feature.properties['CVEVIAL2']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['CVEREF2'] !== null ? autolinker.link(String(feature.properties['CVEREF2']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['TIPOVR2'] !== null ? autolinker.link(String(feature.properties['TIPOVR2']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['NOMREF2'] !== null ? autolinker.link(String(feature.properties['NOMREF2']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['CVEASEN'] !== null ? autolinker.link(String(feature.properties['CVEASEN']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['TIPOASEN'] !== null ? autolinker.link(String(feature.properties['TIPOASEN']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['NOMASEN'] !== null ? autolinker.link(String(feature.properties['NOMASEN']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['CP'] !== null ? autolinker.link(String(feature.properties['CP']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
+    function setBounds() {}
 
-        function style_TrazaUrbanaManzanas_6_0() {
-            return {
-                pane: 'pane_TrazaUrbanaManzanas_6',
-                opacity: 1,
-                color: 'rgba(0,0,255,1.0)',
-                dashArray: '',
-                lineCap: 'square',
-                lineJoin: 'bevel',
-                weight: 1.0,
-                fillOpacity: 0,
-                interactive: true,
-            }
-        }
-        map.createPane('pane_TrazaUrbanaManzanas_6');
-        map.getPane('pane_TrazaUrbanaManzanas_6').style.zIndex = 406;
-        map.getPane('pane_TrazaUrbanaManzanas_6').style['mix-blend-mode'] = 'normal';
-        var layer_TrazaUrbanaManzanas_6 = new L.geoJson(json_TrazaUrbanaManzanas_6, {
-            attribution: '',
-            interactive: true,
-            dataVar: 'json_TrazaUrbanaManzanas_6',
-            layerName: 'layer_TrazaUrbanaManzanas_6',
-            pane: 'pane_TrazaUrbanaManzanas_6',
-            onEachFeature: pop_TrazaUrbanaManzanas_6,
-            style: style_TrazaUrbanaManzanas_6_0,
-        });
-        bounds_group.addLayer(layer_TrazaUrbanaManzanas_6);
-        map.addLayer(layer_TrazaUrbanaManzanas_6);
-        function pop_Baches_7(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['fid'] !== null ? autolinker.link(String(feature.properties['fid']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['ID_Reporte'] !== null ? autolinker.link(String(feature.properties['ID_Reporte']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Tamano'] !== null ? autolinker.link(String(feature.properties['Tamano']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Peligro'] !== null ? autolinker.link(String(feature.properties['Peligro']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Foto_Evidencia'] !== null ? autolinker.link(String(feature.properties['Foto_Evidencia']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Estado_reparacion'] !== null ? autolinker.link(String(feature.properties['Estado_reparacion']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
+    // ══════════════════════════════════════════════
+    //  CAPAS BASE
+    // ══════════════════════════════════════════════
+    map.createPane('pane_2gisMap_0');
+    map.getPane('pane_2gisMap_0').style.zIndex = 400;
+    var layer_2gisMap_0 = L.tileLayer('https://tile2.maps.2gis.com/tiles?x={x}&y={y}&z={z}&v=1.1', {
+        pane: 'pane_2gisMap_0', opacity: 1.0, minZoom: 1, maxZoom: 28,
+        minNativeZoom: 0, maxNativeZoom: 18
+    });
 
-        function style_Baches_7_0(feature) {
-            switch(String(feature.properties['Peligro'])) {
-                case 'Alto':
-                    return {
+    map.createPane('pane_GoogleHybrid_1');
+    map.getPane('pane_GoogleHybrid_1').style.zIndex = 401;
+    var layer_GoogleHybrid_1 = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+        pane: 'pane_GoogleHybrid_1', opacity: 1.0,
+        attribution: 'Map data ©2015 Google', minZoom: 1, maxZoom: 28
+    });
+
+    map.createPane('pane_GoogleSatellite_2');
+    map.getPane('pane_GoogleSatellite_2').style.zIndex = 402;
+    var layer_GoogleSatellite_2 = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        pane: 'pane_GoogleSatellite_2', opacity: 1.0,
+        attribution: 'Map data ©2015 Google', minZoom: 1, maxZoom: 28
+    });
+    map.addLayer(layer_GoogleSatellite_2);
+
+    // ══════════════════════════════════════════════
+    //  FUNCIÓN GENERADORA DE TARJETAS (POP-UPS RICOS)
+    // ══════════════════════════════════════════════
+
+    // ══════════════════════════════════════════════
+    //  AGEBs TIPO A — lista de CVEGEOs
+    // ══════════════════════════════════════════════
+    var AGEBS_TIPO_A = [
+        '3008700011529',
+        '3008700011104A',
+        '3008700011035',
+        '3008700010658',
+        '3008700010592',
+        '3008700010501',
+        '3008700010015A',
+        '3008700011707',
+        '3008700011209',
+        '3008700010569',
+        '3008700010770',
+        '300870001200A',
+        '3008700010978',
+        '3008700012086',
+        '3008700010624',
+        '3008700011730',
+        '3008700012387',
+        '3008700010910',
+        '3008700010573',
+        '3008700010018'
+    ];
+
+    function getTipoAGEB(cvegeo) {
+        return AGEBS_TIPO_A.includes(String(cvegeo).trim()) ? 'A' : 'B';
+    }
+
+    var placeholderFoto = '<div style="background:#f8f9fa;border:2px dashed #cfd8dc;border-radius:8px;padding:22px 0;text-align:center;">' +
+        '<i class="fas fa-camera-retro" style="font-size:26px;color:#b0bec5;"></i>' +
+        '<div style="font-size:10px;font-weight:600;color:#90a4ae;text-transform:uppercase;margin-top:6px;">Sin Evidencia Fotográfica</div></div>';
+
+    function tarjetaInfraestructura(props, fotoHtml, titulo, icono, colorHeader) {
+        var obs = props['Observaciones'] || props['Estado_reparacion'] || '';
+        var obsHtml = (obs && obs !== '' && obs.toLowerCase() !== 'ninguno')
+            ? obs : '<span style="color:#aaa;">Sin observaciones.</span>';
+        if (fotoHtml && fotoHtml.includes('<img')) {
+            fotoHtml = fotoHtml.replace('style="', 'style="height:180px;object-fit:cover;width:100%;');
+        }
+        return '<div style="font-family:Montserrat,sans-serif;min-width:280px;overflow:hidden;">' +
+            '<div style="background:' + colorHeader + ';color:white;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">' +
+                '<span style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:1px;">' +
+                    '<i class="' + icono + '" style="margin-right:8px;"></i>' + titulo +
+                '</span>' +
+                '<span style="background:rgba(0,0,0,0.2);padding:3px 8px;border-radius:4px;font-size:12px;font-weight:700;">' +
+                    (props['Id'] || props['ID_Reporte'] || 'S/N') +
+                '</span>' +
+            '</div>' +
+            '<div style="padding:15px;background:white;max-height:400px;overflow-y:auto;">' +
+                '<table style="width:100%;border-collapse:separate;border-spacing:0 10px;">' +
+                    '<tr style="display:none;"><td></td></tr>' +
+                    '<tr><th style="text-align:left;color:#546e7a;font-size:10px;text-transform:uppercase;width:35%;">Tipo</th>' +
+                        '<td style="font-size:14px;font-weight:700;color:#2c3e50;">' + (props['Tipo'] || props['Tamano'] || '—') + '</td></tr>' +
+                    '<tr><th style="text-align:left;color:#546e7a;font-size:10px;text-transform:uppercase;">Estado</th>' +
+                        '<td style="font-size:14px;font-weight:700;color:#2c3e50;">' + (props['Estado'] || props['Peligro'] || '—') + '</td></tr>' +
+                    '<tr><td colspan="2">' + fotoHtml + '</td></tr>' +
+                    '<tr><td colspan="2"><div style="background:#f9f9f9;padding:10px;border-radius:6px;border-left:3px solid #ccc;font-size:11px;color:#555;line-height:1.4;">' +
+                        '<strong style="display:block;font-size:9px;color:#546e7a;text-transform:uppercase;margin-bottom:3px;">Reporte:</strong>' +
+                        obsHtml + '</div></td></tr>' +
+                '</table>' +
+            '</div></div>';
+    }
+
+    // ══════════════════════════════════════════════
+    //  CAPA: ZONIFICACIÓN AGEBs
+    // ══════════════════════════════════════════════
+    function pop_ZonificacinAGEBs_3(feature, layer) {
+        var p = feature.properties;
+        var cvegeo = String(p['CVEGEO'] || '').trim();
+        var tipo = getTipoAGEB(cvegeo);
+        var colorTipo = tipo === 'A' ? '#c0392b' : '#6c5ce7';
+
+        var html = '<div style="font-family:Montserrat,sans-serif;min-width:220px;overflow:hidden;">' +
+            '<div style="background:' + colorTipo + ';color:white;padding:10px 14px;text-align:center;">' +
+                '<div style="font-size:9px;letter-spacing:1px;opacity:0.85;text-transform:uppercase;">Zona (AGEB) — Tipo ' + tipo + '</div>' +
+                '<div style="font-size:22px;font-weight:800;">' + (cvegeo ? cvegeo.slice(-4) : 'S/N') + '</div>' +
+            '</div>' +
+            '<div style="padding:14px;background:white;border:1px solid #ddd;border-top:none;">' +
+                '<div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;margin-bottom:4px;text-align:center;">CLAVE ÚNICA (CVEGEO)</div>' +
+                '<div style="background:#f0f3f6;color:#2c3e50;padding:6px 10px;border-radius:4px;font-family:monospace;font-size:13px;font-weight:bold;border:1px solid #dcdcdc;text-align:center;">' +
+                    cvegeo +
+                '</div>' +
+                '<div style="margin-top:10px;text-align:center;">' +
+                    '<span style="background:' + colorTipo + ';color:white;padding:3px 14px;border-radius:20px;font-weight:700;font-size:12px;">TIPO ' + tipo + '</span>' +
+                '</div>' +
+            '</div></div>';
+
+        layer.bindPopup(html, {maxWidth: 280});
+
+        // Color del borde según tipo
+        layer.setStyle({
+            color: tipo === 'A' ? '#c0392b' : 'rgba(211,35,35,1.0)',
+            weight: tipo === 'A' ? 5 : 3,
+            opacity: tipo === 'A' ? 1 : 0.6
+        });
+    }
+
+    map.createPane('pane_ZonificacinAGEBs_3');
+    map.getPane('pane_ZonificacinAGEBs_3').style.zIndex = 403;
+    var layer_ZonificacinAGEBs_3 = new L.geoJson(json_ZonificacinAGEBs_3, {
+        attribution: '', interactive: true,
+        pane: 'pane_ZonificacinAGEBs_3',
+        onEachFeature: pop_ZonificacinAGEBs_3,
+        style: function() {
+            return { pane: 'pane_ZonificacinAGEBs_3', opacity: 1,
+                color: 'rgba(211,35,35,1.0)', weight: 4, fillOpacity: 0, interactive: true };
+        }
+    });
+    bounds_group.addLayer(layer_ZonificacinAGEBs_3);
+    map.addLayer(layer_ZonificacinAGEBs_3);
+
+    // ══════════════════════════════════════════════
+    //  CAPA: LÍMITE MUNICIPAL
+    // ══════════════════════════════════════════════
+    map.createPane('pane_LmiteMunicipal_4');
+    map.getPane('pane_LmiteMunicipal_4').style.zIndex = 404;
+    var layer_LmiteMunicipal_4 = new L.geoJson(json_LmiteMunicipal_4, {
+        attribution: '', interactive: false,
+        pane: 'pane_LmiteMunicipal_4',
+        style: function() {
+            return { pane: 'pane_LmiteMunicipal_4', opacity: 1,
+                color: 'rgba(230,219,41,1.0)', weight: 4,
+                dashArray: '12,5,2,5', fillOpacity: 0, interactive: false };
+        }
+    });
+    bounds_group.addLayer(layer_LmiteMunicipal_4);
+    map.addLayer(layer_LmiteMunicipal_4);
+
+    // ══════════════════════════════════════════════
+    //  CAPA: RED VIAL
+    // ══════════════════════════════════════════════
+    var vialActiva = null;
+    function pop_RedVial_5(feature, layer) {
+        var p = feature.properties;
+        var tipo = p['TIPOVIAL'] || '';
+        var nombre = (p['NOMVIAL'] || '').toLowerCase() === 'ninguno' ? 'SIN NOMBRE' : (p['NOMVIAL'] || 'SIN NOMBRE');
+        var html = '<div style="font-family:Montserrat,sans-serif;min-width:240px;">' +
+            '<div style="background:#34495e;color:white;padding:8px 14px;text-align:center;">' +
+                '<div style="font-size:9px;letter-spacing:1px;opacity:0.8;text-transform:uppercase;">Clave de Vialidad</div>' +
+                '<div style="font-size:16px;font-weight:800;letter-spacing:2px;">' + (p['CVEVIAL'] || 'S/N') + '</div>' +
+            '</div>' +
+            '<div style="padding:14px;background:white;border:1px solid #ccc;border-top:none;">' +
+                '<div style="text-align:center;margin-bottom:8px;">' +
+                    '<div style="font-size:10px;color:#7f8c8d;font-weight:600;margin-bottom:3px;text-transform:uppercase;">Nombre</div>' +
+                    '<div style="font-size:15px;font-weight:800;color:#2c3e50;text-transform:uppercase;">' + tipo + ' ' + nombre + '</div>' +
+                '</div>' +
+                '<div style="border-top:1px dashed #eee;padding-top:8px;font-size:11px;color:#666;text-align:center;">' +
+                    'SENTIDO: <strong>' + (p['SENTIDO'] || 'No definido') + '</strong>' +
+                '</div>' +
+            '</div></div>';
+        layer.bindPopup(html);
+    }
+
+    map.createPane('pane_RedVial_5');
+    map.getPane('pane_RedVial_5').style.zIndex = 405;
+    var layer_RedVial_5 = new L.geoJson(json_RedVial_5, {
+        attribution: '', interactive: true,
+        pane: 'pane_RedVial_5',
+        onEachFeature: pop_RedVial_5,
+        style: function() {
+            return { pane: 'pane_RedVial_5', opacity: 0.8,
+                color: '#636e72', weight: 2.5, dashArray: '5,7', fillOpacity: 0 };
+        }
+    });
+    bounds_group.addLayer(layer_RedVial_5);
+
+    layer_RedVial_5.on('mouseover', function(e) {
+        e.layer.setStyle({ color: '#2c3e50', weight: 5, dashArray: '', opacity: 1 });
+        e.layer.bringToFront();
+    });
+    layer_RedVial_5.on('mouseout', function(e) {
+        if (!e.layer.isPopupOpen()) layer_RedVial_5.resetStyle(e.layer);
+    });
+    layer_RedVial_5.on('popupclose', function(e) { layer_RedVial_5.resetStyle(e.layer); });
+    map.addLayer(layer_RedVial_5);
+
+    // ══════════════════════════════════════════════
+    //  CAPA: TRAZA URBANA (MANZANAS)
+    // ══════════════════════════════════════════════
+    var manzanaActiva = null;
+    function pop_TrazaUrbanaManzanas_6(feature, layer) {
+        var p = feature.properties;
+        var html = '<div style="font-family:Montserrat,sans-serif;min-width:240px;">' +
+            '<div style="background:#7E1928;color:white;padding:10px 14px;border-bottom:3px solid #C3935D;text-align:center;">' +
+                '<div style="font-size:10px;letter-spacing:1px;opacity:0.8;text-transform:uppercase;">Manzana Catastral</div>' +
+                '<div style="font-size:20px;font-weight:800;">' + (p['CVE_MZA'] || (p['CVEGEO'] ? p['CVEGEO'].slice(-3) : 'S/N')) + '</div>' +
+            '</div>' +
+            '<div style="padding:14px;background:#f9f9f9;border:1px solid #ddd;border-top:none;">' +
+                '<div style="margin-bottom:12px;text-align:center;">' +
+                    '<span style="font-size:10px;color:#666;display:block;margin-bottom:3px;text-transform:uppercase;">Clave Única (CVEGEO)</span>' +
+                    '<span style="background:#eef2f5;color:#333;padding:4px 10px;border-radius:4px;font-family:monospace;font-size:13px;font-weight:bold;border:1px solid #ccc;display:block;letter-spacing:1px;">' +
+                        (p['CVEGEO'] || 'Sin Dato') +
+                    '</span>' +
+                '</div>' +
+                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;">' +
+                    '<div><strong style="color:#7E1928;display:block;font-size:9px;text-transform:uppercase;">Municipio</strong>' + (p['CVE_MUN'] || '—') + '</div>' +
+                    '<div><strong style="color:#7E1928;display:block;font-size:9px;text-transform:uppercase;">Localidad</strong>' + (p['CVE_LOC'] || '—') + '</div>' +
+                    '<div><strong style="color:#7E1928;display:block;font-size:9px;text-transform:uppercase;">AGEB</strong>' + (p['CVE_AGEB'] || '—') + '</div>' +
+                    '<div><strong style="color:#7E1928;display:block;font-size:9px;text-transform:uppercase;">Ámbito</strong>' + (p['AMBITO'] || 'Urbana') + '</div>' +
+                '</div>' +
+                '<div style="margin-top:10px;border-top:1px dashed #ccc;padding-top:8px;font-size:10px;text-align:center;color:#888;">' +
+                    'TIPO: <strong style="color:#444;">' + (p['TIPOMZA'] || p['TIPOASEN'] || 'Estándar') + '</strong>' +
+                '</div>' +
+            '</div></div>';
+        layer.bindPopup(html, {maxWidth: 300});
+    }
+
+    map.createPane('pane_TrazaUrbanaManzanas_6');
+    map.getPane('pane_TrazaUrbanaManzanas_6').style.zIndex = 406;
+    var layer_TrazaUrbanaManzanas_6 = new L.geoJson(json_TrazaUrbanaManzanas_6, {
+        attribution: '', interactive: true,
+        pane: 'pane_TrazaUrbanaManzanas_6',
+        onEachFeature: pop_TrazaUrbanaManzanas_6,
+        style: function() {
+            return { pane: 'pane_TrazaUrbanaManzanas_6', opacity: 1,
+                color: 'rgba(0,0,255,1.0)', weight: 1.2,
+                fill: true, fillColor: '#000', fillOpacity: 0.05, interactive: true };
+        }
+    });
+    bounds_group.addLayer(layer_TrazaUrbanaManzanas_6);
+
+    layer_TrazaUrbanaManzanas_6.on('mouseover', function(e) {
+        if (manzanaActiva !== e.layer) {
+            e.layer.setStyle({ weight: 2.5, color: '#C3935D', fillColor: '#FFD700', fillOpacity: 0.5 });
+            e.layer.bringToFront();
+        }
+    });
+    layer_TrazaUrbanaManzanas_6.on('mouseout', function(e) {
+        if (manzanaActiva !== e.layer && !e.layer.isPopupOpen()) {
+            layer_TrazaUrbanaManzanas_6.resetStyle(e.layer);
+        }
+    });
+    layer_TrazaUrbanaManzanas_6.on('click', function(e) {
+        if (manzanaActiva && manzanaActiva !== e.layer) layer_TrazaUrbanaManzanas_6.resetStyle(manzanaActiva);
+        e.layer.setStyle({ weight: 3, color: '#C3935D', fillColor: '#FFD700', fillOpacity: 0.65 });
+        e.layer.bringToFront();
+        manzanaActiva = e.layer;
+    });
+    layer_TrazaUrbanaManzanas_6.on('popupclose', function(e) {
+        layer_TrazaUrbanaManzanas_6.resetStyle(e.layer);
+        if (manzanaActiva === e.layer) manzanaActiva = null;
+    });
+    map.addLayer(layer_TrazaUrbanaManzanas_6);
+
+    // ══════════════════════════════════════════════
+    //  CAPA: BACHES
+    // ══════════════════════════════════════════════
+    function pop_Baches_7(feature, layer) {
+        var p = feature.properties;
+        var nombreFoto = p['Foto_Evidencia'];
+        if (nombreFoto && nombreFoto.includes('/')) nombreFoto = nombreFoto.split('/').pop();
+        var fotoHtml = nombreFoto
+            ? '<img src="images/' + nombreFoto + '" style="width:100%;border-radius:6px;cursor:pointer;" onclick="abrirFoto(this.src)">'
+            : placeholderFoto;
+        var colorHeader = p['Peligro'] === 'Alto' ? '#c0392b' : p['Peligro'] === 'Medio' ? '#d35400' : '#7a6500';
+        var propsAdapt = { 'Id': p['ID_Reporte'], 'Tipo': p['Tamano'], 'Estado': p['Peligro'], 'Estado_reparacion': p['Estado_reparacion'] };
+        layer.bindPopup(tarjetaInfraestructura(propsAdapt, fotoHtml, 'REPORTE DE BACHE', 'fas fa-car-crash', colorHeader), {maxHeight: 480});
+        layer.on('click', function(e) { map.flyTo(e.latlng, 19); });
+    }
+
+    map.createPane('pane_Baches_7');
+    map.getPane('pane_Baches_7').style.zIndex = 407;
+    var layer_Baches_7 = new L.geoJson(json_Baches_7, {
+        attribution: '', interactive: true,
+        pane: 'pane_Baches_7',
+        onEachFeature: pop_Baches_7,
+        pointToLayer: function(feature, latlng) {
+            return L.shapeMarker(latlng, {
                 pane: 'pane_Baches_7',
-                shape: 'triangle',
-                radius: 8.0,
-                opacity: 1,
-                color: 'rgba(128,17,25,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 2.0,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(219,30,42,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'Bajo':
-                    return {
-                pane: 'pane_Baches_7',
-                shape: 'triangle',
-                radius: 8.0,
-                opacity: 1,
-                color: 'rgba(61,128,53,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 2.0,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(84,176,74,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'Medio':
-                    return {
-                pane: 'pane_Baches_7',
-                shape: 'triangle',
-                radius: 8.0,
-                opacity: 1,
-                color: 'rgba(61,128,53,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 2.0,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(221,202,62,1.0)',
-                interactive: true,
-            }
-                    break;
-            }
+                shape: 'triangle', radius: 9,
+                opacity: 1, weight: 2, fill: true, fillOpacity: 1,
+                color: feature.properties['Peligro'] === 'Alto' ? 'rgba(128,17,25,1)' :
+                       feature.properties['Peligro'] === 'Medio' ? 'rgba(150,80,0,1)' : 'rgba(61,128,53,1)',
+                fillColor: feature.properties['Peligro'] === 'Alto' ? 'rgba(219,30,42,1)' :
+                           feature.properties['Peligro'] === 'Medio' ? 'rgba(221,150,62,1)' : 'rgba(221,202,62,1)',
+                interactive: true
+            });
         }
-        map.createPane('pane_Baches_7');
-        map.getPane('pane_Baches_7').style.zIndex = 407;
-        map.getPane('pane_Baches_7').style['mix-blend-mode'] = 'normal';
-        var layer_Baches_7 = new L.geoJson(json_Baches_7, {
-            attribution: '',
-            interactive: true,
-            dataVar: 'json_Baches_7',
-            layerName: 'layer_Baches_7',
-            pane: 'pane_Baches_7',
-            onEachFeature: pop_Baches_7,
-            pointToLayer: function (feature, latlng) {
-                var context = {
-                    feature: feature,
-                    variables: {}
-                };
-                return L.shapeMarker(latlng, style_Baches_7_0(feature));
-            },
-        });
-        bounds_group.addLayer(layer_Baches_7);
-        map.addLayer(layer_Baches_7);
-        function pop_Alumbradopostes_8(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['fid'] !== null ? autolinker.link(String(feature.properties['fid']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Id'] !== null ? autolinker.link(String(feature.properties['Id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Tipo'] !== null ? autolinker.link(String(feature.properties['Tipo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Estado'] !== null ? autolinker.link(String(feature.properties['Estado']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Foto_evidencia'] !== null ? autolinker.link(String(feature.properties['Foto_evidencia']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Observaciones'] !== null ? autolinker.link(String(feature.properties['Observaciones']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
+    });
+    bounds_group.addLayer(layer_Baches_7);
+    map.addLayer(layer_Baches_7);
 
-        function style_Alumbradopostes_8_0() {
-            return {
+    // ══════════════════════════════════════════════
+    //  CAPA: ALUMBRADO PÚBLICO
+    // ══════════════════════════════════════════════
+    function pop_Alumbradopostes_8(feature, layer) {
+        var p = feature.properties;
+        var foto = p['Foto_evidencia']
+            ? '<img src="images/' + p['Foto_evidencia'] + '" style="width:100%;border-radius:6px;cursor:pointer;" onclick="abrirFoto(this.src)">'
+            : placeholderFoto;
+        layer.bindPopup(tarjetaInfraestructura(p, foto, 'ALUMBRADO PÚBLICO', 'fas fa-lightbulb', '#27ae60'), {maxHeight: 480});
+        layer.on('click', function(e) { map.flyTo(e.latlng, 19); });
+    }
+
+    map.createPane('pane_Alumbradopostes_8');
+    map.getPane('pane_Alumbradopostes_8').style.zIndex = 408;
+    var layer_Alumbradopostes_8 = new L.geoJson(json_Alumbradopostes_8, {
+        attribution: '', interactive: true,
+        pane: 'pane_Alumbradopostes_8',
+        onEachFeature: pop_Alumbradopostes_8,
+        pointToLayer: function(feature, latlng) {
+            return L.circleMarker(latlng, {
                 pane: 'pane_Alumbradopostes_8',
-                radius: 4.0,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(183,72,75,1.0)',
-                interactive: true,
+                radius: 5, opacity: 1, weight: 1,
+                color: 'rgba(35,35,35,1)', fill: true, fillOpacity: 1,
+                fillColor: 'rgba(183,72,75,1)', interactive: true
+            });
+        }
+    });
+    bounds_group.addLayer(layer_Alumbradopostes_8);
+    map.addLayer(layer_Alumbradopostes_8);
+
+    // ══════════════════════════════════════════════
+    //  ÁRBOL DE CAPAS (PANEL LATERAL)
+    // ══════════════════════════════════════════════
+    var overlaysTree = [
+        {
+            label: '<b>Infraestructura Urbana</b>', selectAllCheckbox: true,
+            children: [
+                { label: '💡 Alumbradopostes', layer: layer_Alumbradopostes_8 },
+                { label: '🚧 Baches', layer: layer_Baches_7 }
+            ]
+        },
+        {
+            label: '<b>Catastro Municipal</b>', selectAllCheckbox: true,
+            children: [
+                { label: '⬜ Traza Urbana (Manzanas)', layer: layer_TrazaUrbanaManzanas_6 },
+                { label: '🛣️ Red Vial', layer: layer_RedVial_5 },
+                { label: '📍 Límite Municipal', layer: layer_LmiteMunicipal_4 },
+                {
+                    label: '🟣 Zonificación (AGEBs)',
+                    selectAllCheckbox: true,
+                    children: [
+                        { label: '🔴 Tipo A (prioritarias)', layer: layer_ZonificacinAGEBs_3 },
+                        { label: '🟣 Tipo B (resto)', layer: layer_ZonificacinAGEBs_3 }
+                    ]
+                }
+            ]
+        },
+        {
+            label: '<b>Mapa Base</b>', selectAllCheckbox: false,
+            children: [
+                { label: '🛰️ Google Satélite', layer: layer_GoogleSatellite_2, radioGroup: 'bm' },
+                { label: '🌍 Google Híbrido',  layer: layer_GoogleHybrid_1,    radioGroup: 'bm' },
+                { label: '🏙️ 2GIS Map',        layer: layer_2gisMap_0,         radioGroup: 'bm' }
+            ]
+        }
+    ];
+
+    var isMobile = window.innerWidth < 768;
+    var lay = L.control.layers.tree(null, overlaysTree, {
+        namedToggle: false, selectorBack: false, collapsed: isMobile
+    });
+    lay.addTo(map);
+
+    // ── Altura dinámica del panel de capas ──
+    document.addEventListener('DOMContentLoaded', function() {
+        function newLayersListHeight() {
+            var scrollEl = document.querySelector('.leaflet-control-layers-scrollbar');
+            if (scrollEl) {
+                var listEl = document.querySelector('.leaflet-control-layers-list');
+                var h = parseFloat(window.getComputedStyle(listEl).height);
+                listEl.style.height = (h - 50) + 'px';
             }
         }
-        map.createPane('pane_Alumbradopostes_8');
-        map.getPane('pane_Alumbradopostes_8').style.zIndex = 408;
-        map.getPane('pane_Alumbradopostes_8').style['mix-blend-mode'] = 'normal';
-        var layer_Alumbradopostes_8 = new L.geoJson(json_Alumbradopostes_8, {
-            attribution: '',
-            interactive: true,
-            dataVar: 'json_Alumbradopostes_8',
-            layerName: 'layer_Alumbradopostes_8',
-            pane: 'pane_Alumbradopostes_8',
-            onEachFeature: pop_Alumbradopostes_8,
-            pointToLayer: function (feature, latlng) {
-                var context = {
-                    feature: feature,
-                    variables: {}
-                };
-                return L.circleMarker(latlng, style_Alumbradopostes_8_0(feature));
-            },
-        });
-        bounds_group.addLayer(layer_Alumbradopostes_8);
-        var overlaysTree = [
-        {label: '<b>Infraestructura Urbana</b>',  selectAllCheckbox: true, children: [
-            {label: '<img src="legend/Alumbradopostes_8.png" /> Alumbradopostes', layer: layer_Alumbradopostes_8},
-            {label: 'Baches<br /><table><tr><td style="text-align: center;"><img src="legend/Baches_7_Alto0.png" /></td><td>Alto</td></tr><tr><td style="text-align: center;"><img src="legend/Baches_7_Bajo1.png" /></td><td>Bajo</td></tr><tr><td style="text-align: center;"><img src="legend/Baches_7_Medio2.png" /></td><td>Medio</td></tr></table>', layer: layer_Baches_7},]},
-        {label: '<b>Catastro Municipal</b>',  selectAllCheckbox: true, children: [
-            {label: '<img src="legend/TrazaUrbanaManzanas_6.png" /> Traza Urbana (Manzanas)', layer: layer_TrazaUrbanaManzanas_6},
-            {label: '<img src="legend/RedVial_5.png" /> Red Vial', layer: layer_RedVial_5},
-            {label: '<img src="legend/LmiteMunicipal_4.png" /> Límite Municipal', layer: layer_LmiteMunicipal_4},
-            {label: '<img src="legend/ZonificacinAGEBs_3.png" /> Zonificación (AGEBs)', layer: layer_ZonificacinAGEBs_3},]},
-        {label: '<b>Mapa Base</b>',  selectAllCheckbox: true, children: [
-            {label: "Google Satellite", layer: layer_GoogleSatellite_2},
-            {label: "Google Hybrid", layer: layer_GoogleHybrid_1},]},
-            {label: "2gis Map", layer: layer_2gisMap_0},]
-        var lay = L.control.layers.tree(null, overlaysTree,{
-            //namedToggle: true,
-            //selectorBack: false,
-            //closedSymbol: '&#8862; &#x1f5c0;',
-            //openedSymbol: '&#8863; &#x1f5c1;',
-            //collapseAll: 'Collapse all',
-            //expandAll: 'Expand all',
-            collapsed: false, 
-        });
-        lay.addTo(map);
-		document.addEventListener("DOMContentLoaded", function() {
-            // set new Layers List height which considers toggle icon
-            function newLayersListHeight() {
-                var layerScrollbarElement = document.querySelector('.leaflet-control-layers-scrollbar');
-                if (layerScrollbarElement) {
-                    var layersListElement = document.querySelector('.leaflet-control-layers-list');
-                    var originalHeight = layersListElement.style.height 
-                        || window.getComputedStyle(layersListElement).height;
-                    var newHeight = parseFloat(originalHeight) - 50;
-                    layersListElement.style.height = newHeight + 'px';
+        var expanded = true;
+        var ctrlEl = document.querySelector('.leaflet-control-layers');
+        var toggleEl = document.querySelector('.leaflet-control-layers-toggle');
+        if (toggleEl) {
+            toggleEl.addEventListener('click', function() {
+                if (expanded) ctrlEl.classList.remove('leaflet-control-layers-expanded');
+                else ctrlEl.classList.add('leaflet-control-layers-expanded');
+                expanded = !expanded;
+                newLayersListHeight();
+            });
+        }
+        if (ctrlEl) {
+            ctrlEl.addEventListener('click', function(e) {
+                if (e.target.closest('.leaflet-layerstree-header-pointer span')) newLayersListHeight();
+            });
+        }
+        setTimeout(function() { if (toggleEl) { toggleEl.click(); toggleEl.click(); } }, 20);
+        if (window.innerWidth < 650) {
+            setTimeout(function() {
+                if (ctrlEl) ctrlEl.classList.remove('leaflet-control-layers-expanded');
+                expanded = false;
+            }, 500);
+        }
+    });
+
+    // ══════════════════════════════════════════════
+    //  BUSCADOR MULTICAPA (igual que Poza Rica)
+    // ══════════════════════════════════════════════
+
+    // 1. Capa invisible para índice de búsqueda
+    var searchLayer = L.geoJson(null, {
+        style: function() {
+            return { stroke: false, fill: false, opacity: 0, fillOpacity: 0, interactive: false };
+        },
+        pointToLayer: function(feature, latlng) {
+            return L.circleMarker(latlng, { radius: 0, opacity: 0, fillOpacity: 0, interactive: false });
+        }
+    });
+
+    // 2. Helper: añadir features a la capa de búsqueda
+    function addDataToSearch(capaReal, campoClave, prefijoVisible) {
+        if (!capaReal) return;
+        capaReal.eachLayer(function(l) {
+            if (l.feature && l.feature.properties) {
+                var textoBusqueda = (typeof campoClave === 'function')
+                    ? campoClave(l.feature.properties)
+                    : String(l.feature.properties[campoClave] || '').trim();
+
+                if (textoBusqueda !== '') {
+                    var geojsonFeature = {
+                        type: 'Feature',
+                        properties: Object.assign({}, l.feature.properties),
+                        geometry: l.feature.geometry
+                    };
+                    geojsonFeature.properties['search_field'] = prefijoVisible + ' - ' + textoBusqueda;
+                    geojsonFeature.properties['_sourceLayer'] = l;
+                    searchLayer.addData(geojsonFeature);
                 }
             }
-            var isLayersListExpanded = true;
-            var controlLayersElement = document.querySelector('.leaflet-control-layers');
-            var toggleLayerControl = document.querySelector('.leaflet-control-layers-toggle');
-            // toggle Collapsed/Expanded and apply new Layers List height
-            toggleLayerControl.addEventListener('click', function() {
-                if (isLayersListExpanded) {
-                    controlLayersElement.classList.remove('leaflet-control-layers-expanded');
-                } else {
-                    controlLayersElement.classList.add('leaflet-control-layers-expanded');
-                }
-                isLayersListExpanded = !isLayersListExpanded;
-                newLayersListHeight()
-            });	
-			// apply new Layers List height if toggle layerstree
-			if (controlLayersElement) {
-				controlLayersElement.addEventListener('click', function(event) {
-					var toggleLayerHeaderPointer = event.target.closest('.leaflet-layerstree-header-pointer span');
-					if (toggleLayerHeaderPointer) {
-						newLayersListHeight();
-					}
-				});
-			}
-            // Collapsed/Expanded at Start to apply new height
-            setTimeout(function() {
-                toggleLayerControl.click();
-            }, 10);
-            setTimeout(function() {
-                toggleLayerControl.click();
-            }, 10);
-            // Collapsed touch/small screen
-            var isSmallScreen = window.innerWidth < 650;
-            if (isSmallScreen) {
-                setTimeout(function() {
-                    controlLayersElement.classList.remove('leaflet-control-layers-expanded');
-                    isLayersListExpanded = !isLayersListExpanded;
-                }, 500);
-            }  
-        });       
-        setBounds();
-        </script> 
-        
-        <!-- Visor de imagen a pantalla completa -->
-<div id="image-modal" class="modal-overlay" onclick="closeModal()">
-    <span class="close-modal">&times;</span>
-    <img class="modal-content" id="full-image">
-</div>
+        });
+    }
 
-<!-- Panel deslizante móvil -->
-<div id="panel-movil" class="panel-movil-oculto">
-    <button id="btn-cerrar-panel" onclick="cerrarPanelMovil()">×</button>
-    <div id="contenido-panel"></div>
-</div>
-    </body>
+    // 3. Alimentar el índice con cada capa
+
+    // --- MANZANAS ---
+    addDataToSearch(layer_TrazaUrbanaManzanas_6, function(props) {
+        var corta = String(props['CVE_MZA'] || '').trim();
+        var larga = String(props['CVEGEO'] || '').trim();
+        return corta + ' | ' + larga;
+    }, 'Manzana');
+
+    // --- AGEBS (con tipo A/B) ---   ← CAMBIO 1
+    addDataToSearch(layer_ZonificacinAGEBs_3, function(props) {
+        var cvegeo = String(props['CVEGEO'] || '').trim();
+        var tipo = getTipoAGEB(cvegeo);
+        return cvegeo + ' | Tipo: ' + tipo;
+    }, 'AGEB');
+
+    // --- RED VIAL ---
+    addDataToSearch(layer_RedVial_5, function(props) {
+        var tipo   = String(props['TIPOVIAL'] || '').trim();
+        var nombre = String(props['NOMVIAL']  || '').trim();
+        var clave  = String(props['CVEVIAL']  || '').trim();
+        if (nombre.toLowerCase() === 'ninguno') nombre = 'SIN NOMBRE';
+        return (tipo + ' ' + nombre).trim() + ' | Clave: ' + clave;
+    }, 'Calle');
+
+    // --- ALUMBRADO ---
+    addDataToSearch(layer_Alumbradopostes_8, 'Id', 'Poste');
+
+    // --- BACHES ---
+    addDataToSearch(layer_Baches_7, 'ID_Reporte', 'Bache');
+
+    // 4. Instanciar el control de búsqueda
+    var searchControl = new L.Control.Search({
+        layer: searchLayer,
+        initial: false,
+        propertyName: 'search_field',
+        zoom: 19,
+        marker: false,
+        textErr: 'No encontrado',
+        textCancel: 'Cancelar',
+        textPlaceholder: 'Buscar (Ej: Calle Enríquez, AGEB 1529)...',
+        casesensitive: false,
+        autoCollapse: false,
+
+        // ── CAMBIO 3: filterData con soporte AGEB_A ──
+        filterData: function(text, records) {
+            var filtroActivo = document.getElementById('filtro-busqueda') ? document.getElementById('filtro-busqueda').value : '';
+            var res = {};
+            var reg = new RegExp(text, 'i');
+            for (var key in records) {
+                if (filtroActivo === 'AGEB_A') {
+                    if (!key.startsWith('AGEB') || !/Tipo: A/.test(key)) continue;
+                } else if (filtroActivo === 'AGEB') {
+                    if (!key.startsWith('AGEB')) continue;
+                } else if (filtroActivo !== '') {
+                    if (!key.startsWith(filtroActivo)) continue;
+                }
+                if (reg.test(key)) res[key] = records[key];
+            }
+            return res;
+        }
+    });
+
+    // 5. Acción al encontrar un resultado
+    searchControl.on('search:locationfound', function(e) {
+        var capaOriginal = e.layer.feature.properties._sourceLayer;
+        if (capaOriginal && capaOriginal.openPopup) {
+            capaOriginal.openPopup();
+            if (capaOriginal.setStyle && typeof capaOriginal.setStyle === 'function') {
+                var estiloOriginal = Object.assign({}, capaOriginal.options);
+                capaOriginal.setStyle({ fillColor: '#FFD700', color: '#ff0000', weight: 4, opacity: 1, fillOpacity: 0.7 });
+                setTimeout(function() {
+                    if (map.hasLayer(capaOriginal)) capaOriginal.setStyle(estiloOriginal);
+                }, 2500);
+            }
+        }
+    });
+
+    map.addControl(searchControl);
+
+    // 6. Añadir ícono al botón de búsqueda
+    var searchBtn = document.querySelector('.search-button');
+    if (searchBtn) searchBtn.classList.add('fa', 'fa-binoculars');
+
+    // 7. Menú desplegable de filtro y disparo automático   ← CAMBIO 2
+    setTimeout(function() {
+        var searchInput = searchControl._input;
+        var searchContainer = searchControl.getContainer();
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                setTimeout(function() {
+                    var ev = new KeyboardEvent('keyup', { bubbles: true, cancelable: true, keyCode: 13 });
+                    searchInput.dispatchEvent(ev);
+                }, 150);
+            });
+        }
+
+        if (searchContainer) {
+            L.DomEvent.disableClickPropagation(searchContainer);
+            searchContainer.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+
+            if (!document.getElementById('filtro-busqueda')) {
+                var selectHTML = document.createElement('select');
+                selectHTML.id = 'filtro-busqueda';
+                selectHTML.innerHTML =
+                    '<option value="">🔎 Buscar en todo</option>' +
+                    '<option value="Manzana">📍 Solo Manzanas</option>' +
+                    '<option value="Calle">🛣️ Solo Calles</option>' +
+                    '<option value="AGEB_A">🔴 Solo AGEBs Tipo A</option>' +
+                    '<option value="AGEB">🟣 Todas las AGEBs</option>' +
+                    '<option value="Poste">💡 Solo Postes</option>' +
+                    '<option value="Bache">🚧 Solo Baches</option>';
+
+                selectHTML.style.cssText = 'border:2px solid #C3935D;padding:2px;border-radius:4px;margin-left:6px;background:white;color:#7E1928;font-weight:bold;cursor:pointer;outline:none;font-family:Montserrat,sans-serif;font-size:11px;height:28px;vertical-align:top;display:inline-block;';
+
+                searchContainer.appendChild(selectHTML);
+
+                selectHTML.addEventListener('change', function() {
+                    if (searchInput && searchInput.value !== '') {
+                        var ev = new KeyboardEvent('keyup', { bubbles: true, keyCode: 13 });
+                        searchInput.dispatchEvent(ev);
+                    }
+                });
+            }
+        }
+    }, 500);
+
+    setBounds();
+
+    // ══════════════════════════════════════════════
+    //  PANEL MÓVIL — mostrar popup en slide-up
+    // ══════════════════════════════════════════════
+    map.on('popupopen', function(e) {
+        if (window.innerWidth < 768) {
+            var panel = document.getElementById('panel-movil');
+            var cont  = document.getElementById('contenido-panel');
+            cont.innerHTML = e.popup.getContent();
+            panel.classList.add('panel-movil-activo');
+        }
+    });
+    map.on('click', function() {
+        if (window.innerWidth < 768) cerrarPanelMovil();
+    });
+
+    </script>
+
+    <!-- ══ VISOR DE FOTOS ══ -->
+    <div id="image-modal" class="modal-overlay" onclick="closeImageModal()">
+        <span class="close-modal">&times;</span>
+        <img class="modal-content" id="full-image">
+    </div>
+
+    <!-- ══ PANEL MÓVIL ══ -->
+    <div id="panel-movil" class="panel-movil-oculto">
+        <button id="btn-cerrar-panel" onclick="cerrarPanelMovil()">×</button>
+        <div id="contenido-panel"></div>
+    </div>
+
+    <!-- ══ FUNCIONES GLOBALES ══ -->
+    <script>
+    function abrirFoto(src) {
+        var modal = document.getElementById('image-modal');
+        var img   = document.getElementById('full-image');
+        img.src = src;
+        modal.style.display = 'flex';
+    }
+    function closeImageModal() {
+        document.getElementById('image-modal').style.display = 'none';
+    }
+    function cerrarPanelMovil() {
+        document.getElementById('panel-movil').classList.remove('panel-movil-activo');
+        map.closePopup();
+    }
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeImageModal();
+    });
+    </script>
+
+</body>
 </html>
