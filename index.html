@@ -781,6 +781,8 @@
             for (var key in records) {
                 if (filtroActivo === 'AGEB_A') {
                     if (!key.startsWith('AGEB') || !/Tipo: A/.test(key)) continue;
+                } else if (filtroActivo === 'AGEB_B') {
+                    if (!key.startsWith('AGEB') || !/Tipo: B/.test(key)) continue;
                 } else if (filtroActivo === 'AGEB') {
                     if (!key.startsWith('AGEB')) continue;
                 } else if (filtroActivo !== '') {
@@ -838,8 +840,9 @@
                     '<option value="">🔎 Buscar en todo</option>' +
                     '<option value="Manzana">📍 Solo Manzanas</option>' +
                     '<option value="Calle">🛣️ Solo Calles</option>' +
-                    '<option value="AGEB_A">🔴 Solo AGEBs Tipo A</option>' +
-                    '<option value="AGEB">🟣 Todas las AGEBs</option>' +
+                    '<option value="AGEB_A">🔴 AGEBs Tipo A (prioritarias)</option>' +
+                    '<option value="AGEB_B">🟣 AGEBs Tipo B (resto)</option>' +
+                    '<option value="AGEB">🔍 Todas las AGEBs</option>' +
                     '<option value="Poste">💡 Solo Postes</option>' +
                     '<option value="Bache">🚧 Solo Baches</option>';
 
